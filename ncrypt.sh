@@ -8,31 +8,46 @@ cypher='aes-256-cbc'
 
 ## Format
 # ncrypt file.txt
-# ncrypt -d file.ncrypt
-# ncrypt -v file.ncrypt
+# ncrypt file.txt.ncrypt
+# ncrypt -v file.txt.ncrypt
 ##
 
 check_arguments() {
-	if [[ $# -eq 1 ]] && [[ -f $1 ]]; then
-		mode='encrypt'
-		input_file="$1"
-	elif [[ $# -eq 2 ]] && [[ -f $2 ]] && [[ $1 == '-d' ]]; then
-		mode='decrypt'
-		input_file="$2"
-	elif [[ $# -eq 2 ]] && [[ -f $2 ]] && [[ $1 == '-v' ]]; then
-		mode='view'
-		input_file="$2"
-	else
-		echo "kp we :@"
+	if [[ ! -f ${@: -1} ]]; then
+		echo 'kp we :@'
 		exit 1
 	fi
+
+	case "$#" in
+		1)
+			if [[ ! $1 =~ .ncrypt$ ]]; then
+				mode='encrypt'
+				input_file="$1"
+			elif [[ $1 =~ .ncrypt$ ]]; then
+				mode='decrypt'
+				input_file="$1"
+			fi
+			;;
+		2)
+			if [[ $1 == '-v' ]] && [[ $2 =~ .ncrypt$ ]]; then
+				mode='view'
+				input_file="$2"
+			else
+				echo 'kp we :@'
+				exit 1
+			fi
+			;;
+		*)
+			echo "kp we :@"
+			exit 1
+	esac
 }
 
-get_file_path() {
+get_abs_path() {
 	echo "$(cd "$(dirname "$1")" && pwd)/$(basename "$1")"
 }
 
-get_file_name() {
+get_name() {
 	echo "$(basename "$1")"
 }
 
@@ -49,14 +64,14 @@ file_exists() {
 }
 
 encrypt() {
-	local output_file="$(get_file_path ${input_file}).ncrypt"
+	local output_file="$(get_abs_path ${input_file}).ncrypt"
 	file_exists "${output_file}"
 	openssl enc -"${cypher}" -in "${input_file}" -out "${output_file}" 
 	echo -e "\nEncrypted and saved to ${output_file}"
 }
 
 decrypt() {
-	local output_file="$(echo $(get_file_path ${input_file}) | sed 's/.ncrypt$//')"
+	local output_file="$(echo $(get_abs_path ${input_file}) | sed 's/.ncrypt$//')"
 	file_exists "${output_file}"
 	openssl enc -d -"${cypher}" -in "${input_file}" -out "${output_file}"
 	echo -e "\nDecripted and saved to ${output_file}"
