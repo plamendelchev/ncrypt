@@ -64,7 +64,7 @@ decrypt() {
 
 view() {
 	local result="$(openssl enc -d -"${cypher}" -in "${input_file}")"
-	echo "${result}"
+	echo "${result}" | less
 }
 
 
