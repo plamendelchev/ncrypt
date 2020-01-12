@@ -10,6 +10,7 @@ cypher='aes-256-cbc'
 # ncrypt file.txt
 # ncrypt file.txt.ncrypt
 # ncrypt -v file.txt.ncrypt
+# ncrypt -g pattern file.txt.ncrypt
 ##
 
 check_arguments() {
@@ -35,6 +36,13 @@ check_arguments() {
 			else
 				echo 'kp we :@'
 				exit 1
+			fi
+			;;
+		3)
+			if [[ $1 == '-g' ]] && [[ $3 =~ .ncrypt$ ]]; then
+				mode='search'
+				pattern="$2"
+				input_file="$3"
 			fi
 			;;
 		*)
@@ -82,12 +90,23 @@ view() {
 	echo "${result}" | less
 }
 
+search () {
+	local result="$(echo "$(openssl enc -d -"${cypher}" -in "${input_file}")" | grep -wi ${pattern})"
+
+	if [[ -z ${result} ]]; then
+		echo 'Pattern not found'
+		exit 1
+	else
+		echo "${result}" | less
+	fi
+}
 
 init() {
 	case "$1" in
 		encrypt) encrypt ;;
 		decrypt) decrypt ;;
 		view) view ;;
+		search) search ;;
 	esac
 }
 
