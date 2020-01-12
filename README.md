@@ -13,3 +13,7 @@ View an encrypted file:
 ````
 ncrypt -v file.txt.ncrypt
 `````
+Search a pattern in an encrypted file:
+````
+ncrypt -g pattern file.txt.ncrypt
+````
